@@ -1,0 +1,119 @@
+const piano = new Tone.Sampler({
+  urls: {
+    C3: "C3.mp3",
+    D3: "D3.mp3",
+    E3: "E3.mp3",
+    F3: "F3.mp3",
+    G3: "G3.mp3",
+    A3: "A3.mp3",
+    B3: "B3.mp3",
+    C4: "C4.mp3",
+    D4: "D4.mp3",
+    E4: "E4.mp3",
+    F4: "F4.mp3",
+    G4: "G4.mp3",
+    A4: "A4.mp3",
+    B4: "B4.mp3",
+    C5: "C5.mp3",
+    D5: "D5.mp3",
+    E5: "E5.mp3",
+    F5: "F5.mp3",
+    G5: "G5.mp3",
+    A5: "A5.mp3",
+    B5: "B5.mp3",
+  },
+  baseUrl: "https://gleitz.github.io/midi-js-soundfonts/FluidR3_GM/acoustic_grand_piano-mp3/",
+}).toDestination();
+
+const octaves = [3, 4, 5];
+
+// Current chord stored here
+let currentChord = null;
+let currentOctave = null;
+
+// Create answer buttons
+const container = document.getElementById("buttons");
+Object.keys(chords).forEach(ch => {
+  const b = document.createElement("button");
+  b.innerText = ch;
+  b.onclick = () => checkAnswer(ch);
+  container.appendChild(b);
+});
+
+// Generate a NEW random chord + octave
+function generateChord() {
+  const names = Object.keys(chords);
+
+  currentChord = names[Math.floor(Math.random() * names.length)];
+  currentOctave = octaves[Math.floor(Math.random() * octaves.length)];
+}
+
+// Play the current chord (if none, generate first)
+function playChord() {
+  if (!currentChord) {
+    generateChord();
+  }
+
+  const baseNotes = chords[currentChord];
+  const notes = baseNotes.map(n => n + currentOctave);
+
+  piano.triggerAttackRelease(notes, "2n");
+}
+
+// Check guess
+function checkAnswer(userGuess) {
+  const result = document.getElementById("result");
+
+  if (userGuess === currentChord) {
+    result.innerText = "Correct! 🎉";
+
+    // Generate new chord for next round
+    setTimeout(() => {
+      generateChord();
+      result.innerText = "";
+    }, 800);
+  } else {
+    result.innerText = "Wrong! Try again.";
+  }
+}
+
+// PLAY button
+document.getElementById("play").onclick = () => {
+  playChord();
+};
+// Play chord ascending (arpeggio)
+function playChordAscending() {
+  if (!currentChord) generateChord();  // generate if none
+
+  const baseNotes = chords[currentChord];
+  const notes = baseNotes.map(n => n + currentOctave);
+
+  // Trigger each note with 0.5s delay
+  notes.forEach((note, index) => {
+    piano.triggerAttackRelease(note, "2n", Tone.now() + index * 0.5);
+  });
+}
+
+// Connect ascending button (make sure you have a button with id="playArp")
+document.getElementById("playArp").onclick = () => {
+  playChordAscending();
+};
+// Play chord ascending (arpeggio)
+function playChordAscending() {
+  if (!currentChord) generateChord();  // generate if none
+
+  const baseNotes = chords[currentChord];
+  const notes = baseNotes.map(n => n + currentOctave);
+
+  // Trigger each note with 0.5s delay
+  notes.forEach((note, index) => {
+    piano.triggerAttackRelease(note, "2n", Tone.now() + index * 0.5);
+  });
+}
+
+// Connect ascending button (make sure you have a button with id="playArp")
+document.getElementById("playArp").onclick = () => {
+  playChordAscending();
+  <button id="playArp">PLAY ASCENDING</button>
+};
+

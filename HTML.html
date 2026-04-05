@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Major Chord Ear Trainer + Sampler</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.39/Tone.js"></script>
+<style>
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background: #1e1e1e;
+  color: #f0f0f0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 20px;
+}
+
+h1 {
+  color: #ffcc00;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.playButtons {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+button {
+  background-color: #ff6600;
+  border: none;
+  color: white;
+  padding: 12px 25px;
+  font-size: 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+button:hover { background-color: #ff8533; }
+
+#buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+#result, #score {
+  font-size: 20px;
+  min-height: 24px;
+  text-align: center;
+  margin-top: 10px;
+}
+
+/* Sampler section */
+#samplerButtons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 40px;
+}
+
+#samplerButtons button {
+  background-color: #444;
+  padding: 10px 16px;
+  font-size: 14px;
+  border-radius: 6px;
+}
+#samplerButtons button:hover { background-color: #666; }
+</style>
+</head>
+<body>
+
+<h1>Major Chord Ear Trainer</h1>
+
+<!-- TEST SECTION -->
+<div class="playButtons">
+  <button id="play" disabled>PLAY CHORD</button>
+</div>
+<div id="buttons"></div>
+<div id="result"></div>
+<div id="score">Score: 0</div>
+
+<!-- SAMPLER SECTION -->
+<h1>Major Chord Sampler (C3-C5)</h1>
+<div id="samplerButtons"></div>
+
+<script>
+// -------------------
+// TEST SECTION (unchanged)
+// -------------------
+const chords = {
+  C: ["C", "E", "G"],
+  D: ["D", "F#", "A"],
+  E: ["E", "G#", "B"],
+  F: ["F", "A", "C"],
+  G: ["G", "B", "D"],
+  A: ["A", "C#", "E"],
+  B: ["B", "D#", "F#"]
+};
+
+const octaves = [3,4,5];
+
+const piano = new Tone.Sampler({
+  urls: {
+    C3:"C3.mp3", D3:"D3.mp3", E3:"E3.mp3", F3:"F3.mp3", G3:"G3.mp3", A3:"A3.mp3", B3:"B3.mp3",
+    C4:"C4.mp3", D4:"D4.mp3", E4:"E4.mp3", F4:"F4.mp3", G4:"G4.mp3", A4:"A4.mp3", B4:"B4.mp3",
+    C5:"C5.mp3", D5:"D5.mp3", E5:"E5.mp3", F5:"F5.mp3", G5:"G5.mp3", A5:"A5.mp3", B5:"B5.mp3"
+  },
+  baseUrl: "https://gleitz.github.io/midi-js-soundfonts/FluidR3_GM/acoustic_grand_piano-mp3/"
+}).toDestination();
+
+let currentChord = null;
+let currentOctave = null;
+let score = 0;
+
+const playBtn = document.getElementById("play");
+Tone.loaded().then(() => {
+  playBtn.disabled = false;
+  console.log("Piano samples loaded ✅");
+});
+
+// Create answer buttons for test
+const container = document.getElementById("buttons");
+Object.keys(chords).forEach(ch => {
+  const b = document.createElement("button");
+  b.innerText = ch;
+  b.onclick = () => checkAnswer(ch, b);
+  container.appendChild(b);
+});
+
+function generateChord() {
+  const names = Object.keys(chords);
+  currentChord = names[Math.floor(Math.random() * names.length)];
+  currentOctave = octaves[Math.floor(Math.random() * octaves.length)];
+}
+
+function playChord() {
+  if(!currentChord) generateChord();
+  const notes = chords[currentChord].map(n => n + currentOctave);
+  piano.triggerAttackRelease(notes, "2n");
+}
+
+function checkAnswer(userGuess, button) {
+  const result = document.getElementById("result");
+  const scoreDisplay = document.getElementById("score");
+
+  container.querySelectorAll("button").forEach(btn => btn.style.backgroundColor = "#444");
+
+  if(userGuess === currentChord) {
+    button.style.backgroundColor = "green";
+    result.innerText = "Correct! 🎉";
+    score++;
+    scoreDisplay.innerText = "Score: " + score;
+    setTimeout(() => {
+      generateChord();
+      result.innerText = "";
+    }, 800);
+  } else {
+    button.style.backgroundColor = "red";
+    result.innerText = "Wrong! Try again.";
+    score = 0;
+    scoreDisplay.innerText = "Score: " + score;
+  }
+}
+
+// Connect play button
+playBtn.onclick = () => playChord();
+
+// -------------------
+// SAMPLER SECTION
+// -------------------
+Tone.loaded().then(() => {
+  const samplerContainer = document.getElementById("samplerButtons");
+
+  octaves.forEach(oct => {
+    Object.keys(chords).forEach(ch => {
+      const btn = document.createElement("button");
+      btn.innerText = `${ch}${oct}`;
+      btn.onclick = () => {
+        const notes = chords[ch].map(n => n + oct);
+        piano.triggerAttackRelease(notes, "2n");
+      };
+      samplerContainer.appendChild(btn);
+    });
+  });
+});
+</script>
+
+</body>
+</html>
